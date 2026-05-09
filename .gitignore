@@ -8,6 +8,7 @@ Backend/*.pyo
 Backend/*.pyd
 Backend/*.db
 Backend/media.db
+Backend/video
 
 Backend/venv/
 Backend/.venv/

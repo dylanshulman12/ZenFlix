@@ -45,9 +45,9 @@ export default function Overview() {
   const handleViewChange = (event, newAlignment) => {
     return
   }
-  function triggerStream(item) {
+  function triggerStream(path) {
 
-      router.push(`/Stream?path=${encodeURIComponent(item)}`)
+      router.push(`/Stream?path=${encodeURIComponent(path)}`)
 
     return "done"
   }
@@ -139,7 +139,7 @@ export default function Overview() {
         <div style={{position: 'relative', display: "flex", zIndex: 2, flexDirection: "row"}}>
             {/* Start */}
                 <div style={{display: 'flex', paddingLeft: '30px', paddingTop: '100px', justifyContent: 'center'}}>
-                    <button onClick={() => triggerStream(media.id)}>
+                    <button onClick={() => triggerStream(media.path)}>
                     <div className="cardlarge poster">
                       <img
                         src={`/api/get_poster/${media.id}`}

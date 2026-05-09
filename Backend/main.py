@@ -10,12 +10,19 @@ from fastapi.responses import FileResponse, StreamingResponse
 from PIL import Image
 import requests    
 from urllib.parse import quote
+import ffmpeg
+from fastapi.staticfiles import StaticFiles
+import asyncio
+from contextlib import asynccontextmanager
+
 
 
 
 import sqlite3
 
 app = FastAPI()
+os.makedirs("video", exist_ok=True)
+app.mount("/video", StaticFiles(directory="video"), name="video")
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,16 +32,16 @@ app.add_middleware(
     allow_headers=["*"],
     
 )
- 
 
 config_path = "config.json"
 
-# General helper functions
 def getConfigSetting(option: str):
-
     with open(config_path, "r") as f:
         info = json.load(f)
     return info.get(option)
+
+
+
 
 
 # gpt generated function to clean up name of file
@@ -154,7 +161,8 @@ def refreshMetaData(cursor):
     load_dotenv(dotenv_path="../.env")
     api_key = os.getenv("API_KEY")
     
-   
+    os.makedirs("posters", exist_ok=True)
+
 
     cursor.execute("SELECT * FROM movies")
     for row in cursor.fetchall():                
@@ -224,9 +232,7 @@ def scanMedia(type, cursor):
                             "file_type": season.suffix,
                             "runtime": "tbi"
                         })
-                    
-
-
+ 
     elif type == "movies": 
         root = Path(getConfigSetting("Movie_Path"))
         for entry in root.iterdir():
@@ -252,8 +258,6 @@ def scanMedia(type, cursor):
                 #     "path": str(entry),
                 #     "filetype": entry.suffix,
                 # })
-  
-
 
 
 def convertToPNG():
@@ -455,25 +459,18 @@ def getData(movie_id):
 
 
 
-@app.get("/api/video/{full_path:path}")
-async def stream_video(request: Request, full_path: str):
-    if not os.path.exists(full_path):
-        print(full_path)
-        raise HTTPException(status_code=404, detail="File not found")
+@app.get("/api/stream")
+async def stream(path: str):
+    # If 'path' is relative, it might fail or be insecure. 
+    # Ensure it points to your media storage.
+    print(path)
+    if not os.path.exists(path):
+        raise HTTPException(status_code=404, detail="Video not found")
 
-    # if id != mp4.... 
-    # command = [
-    #     "ffmpeg",
-    #     "-i", f"movies/{movie_id}.{filetype}",
-    #     "-codec", "copy",        # Copy video/audio (no re-encoding!)
-    #     "-f", "mp4",             # Force MP4 format
-    #     "-movflags", "frag_keyframe+empty_moov", # Make it streamable
-    #     "pipe:1"                 # Output to stdout
-    # ]
-    
-    # process = subprocess.Popen(command, stdout=subprocess.PIPE)
-    # return StreamingResponse(process.stdout, media_type="video/mp4")
-    # file_size = os.path.getsize(full_path)
-    # range_header = request.headers.get("range")
-
-
+    # FileResponse automatically handles "Range" requests (seeking)
+    # and setting the Content-Length.
+    return FileResponse(
+        path, 
+        media_type="video/x-matroska", 
+        filename=os.path.basename(path) # Optional: suggests a filename for downloads
+    )
