@@ -1,0 +1,39 @@
+
+# =========================
+# Backend (Python)
+# =========================
+Backend/__pycache__/
+Backend/*.pyc
+Backend/*.pyo
+Backend/*.pyd
+Backend/*.db
+Backend/media.db
+
+Backend/venv/
+Backend/.venv/
+Backend/config.json
+Backend/posters
+
+# =========================
+# Frontend (React / Next.js)
+# =========================
+Frontend/node_modules/
+Frontend/.next/
+Frontend/out/
+Frontend/build/
+
+Frontend/npm-debug.log*
+Frontend/yarn-debug.log*
+Frontend/yarn-error.log*
+Frontend/pnpm-debug.log*
+
+# =========================
+# Shared / root
+# =========================
+
+.env
+
+# OS / IDE
+.DS_Store
+.vscode/
+.idea/

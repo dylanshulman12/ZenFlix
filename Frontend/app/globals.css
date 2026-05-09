@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+
+.app {
+  background: #0c0c14;
+  min-height: 100vh;
+}
+
+.topBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  z-index: 2;
+}
+
+.overviewBar {
+  background-color: black;
+}
+
+
+.movieGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  width: 100%;
+  padding: 50px;
+  justify-content: center;
+}
+
+.card {
+  width: 200px;
+  height: 300px;
+  margin: 5px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cardLarge {
+  width: 300px;
+  height: 450;
+
+}
+
+
+.mediaItem {
+  background: black;
+  flex-direction: column;
+  padding: 5px;
+  border: 1px solid black;
+}
+
+.poster {
+  background: transparent;
+  padding: 0;
+  border: 1px solid transparent;
+}
+
+.mediaItem:hover {
+  border-color: white;
+}
+
+.poster:hover {
+  border-color: white;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.navbar-left .logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #fff;
+  text-decoration: none;
+}
+
+.navbar-center .nav-links {
+  list-style-type: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-center .nav-links li {
+  margin-right: 1rem;
+}
+
+.navbar-center .nav-links a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-right .cart-icon,
+.navbar-right .user-icon {
+  color: #fff;
+  text-decoration: none;
+  margin-left: 1rem;
+  position: relative;
+}
+
+.navbar-right .cart-count {
+  background-color: #f44336;
+  color: #fff;
+  border-radius: 50%;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+}

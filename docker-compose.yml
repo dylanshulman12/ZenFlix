@@ -1,0 +1,20 @@
+services:
+  zenflix-frontend:
+    build: ./frontend
+    container_name: zenflix-frontend
+    # Internal port 3000
+
+  zenflix-backend:
+    build: ./backend
+    container_name: zenflix-backend
+    # Internal port 8000
+
+  zenflix-proxy:
+    build: ./nginx
+    container_name: zenflix-proxy
+    ports:
+    # Change first port number to chose port!
+      - "8912:80"
+    depends_on:
+      - zenflix-frontend
+      - zenflix-backend
