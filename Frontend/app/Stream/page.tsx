@@ -1,35 +1,25 @@
-"use client";
+"use client"
 
-import { useSearchParams } from "next/navigation";
-import "@videojs/react/video/skin.css";
-
+import { useSearchParams } from 'next/navigation';
 import '@videojs/react/video/skin.css';
 import { createPlayer, videoFeatures } from '@videojs/react';
 import { VideoSkin, Video } from '@videojs/react/video';
-import { useEffect, useState } from "react";
 
-
-export default function Stream() {
+export default function VideoPage() {
   const searchParams = useSearchParams();
-
-  const movie_path = searchParams.get("path");
-  console.log(movie_path)
-  
-  
-  const videoSrc = movie_path 
-    ? `http://127.0.0.1:8000/api/stream?path=${encodeURIComponent(movie_path)}`
-    : null;
-
+  const moviePath = searchParams.get("path");
   const Player = createPlayer({ features: videoFeatures });
-
+  
+  
+  
   return (
+    <Player.Container style={{ width: 1100, aspectRatio: '16/9' }}>
     <Player.Provider>
       <VideoSkin>
-        {/* 2. Pass the string URL directly. The browser handles the "fetch" logic internally */}
-        {videoSrc && <Video src={videoSrc} playsInline />}
+        <Video src={`/api/stream?file_path=${encodeURIComponent(moviePath)}`} playsInline />
       </VideoSkin>
     </Player.Provider>
-    );
-  };
-    
+    </Player.Container>
+  );
+};
 

@@ -1,7 +1,5 @@
-import os
-import json
+import os, tempfile, json, re
 from pathlib import Path
-import re
 from dotenv import load_dotenv
 
 from fastapi import FastAPI, Request, HTTPException
@@ -14,8 +12,6 @@ import ffmpeg
 from fastapi.staticfiles import StaticFiles
 import asyncio
 from contextlib import asynccontextmanager
-
-
 
 
 import sqlite3
@@ -272,6 +268,23 @@ def convertToPNG():
         print(f"{filename} converted")
         os.remove(webp_path)
 
+@app.get("/api/convert")
+def convertToMP4(path: str):
+    try:
+        print(path)
+        output = path.split(str(Path(path).suffix))[0] + ".mp4"
+        # return {output: output}
+        print(output)
+        (
+        ffmpeg
+        .input(path)
+        .output('output.mp4')
+        .run()
+        )
+        return {"output": output}
+    except Exception as e:
+        return {"output": f"Error: {e}"}
+
 #For checking if usr has seen welcome
 @app.get("/api/welcomeCheck")
 def welcomeCheck():
@@ -302,11 +315,7 @@ def listDirectory(DIR):
 
 # Generate config
 @app.get("/api/generate")
-def generate(
-    tvshow_path: str,
-    movie_path: str,
-):
-    
+def generate(tvshow_path: str, movie_path: str):
 
     info = {
         "Movie_Path": movie_path,
@@ -325,6 +334,9 @@ def generate(
 
 
 # Refresh Metadata
+
+#current problem here, this is a complete refresh, however this is inefficient, we should create 2 versions of this function. 
+# 1. regenerate all, 2. keep the media.db but search to see what directories are not already in the db, then add those, and grab metadata once again
 @app.get("/api/refresh/")
 def refresh():    
     items = []
@@ -457,20 +469,49 @@ def getData(movie_id):
                     })
     return {"Error not found"}
 
+def remuxVideo(file_path: str):
+    mp4_path = os.path.splitext(file_path)[0] + ".mp4"
+
+    if not os.path.exists(mp4_path):
+        print("fixing codec")
+
+        stream = (
+            ffmpeg
+            .input(file_path)
+            .output(
+                mp4_path,
+                vcodec="copy",
+                acodec="aac",
+                audio_bitrate="192k",
+                movflags="+faststart",
+                threads=0
+            )
+            .global_args(
+                "-map", "0:v:0",
+                "-map", "0:a:0"
+            )
+        )
+
+    try:
+        ffmpeg.run(stream, overwrite_output=True)
+    except Exception as e:
+        raise RuntimeError(f"ffmpeg failed: {e}")
+
+    return mp4_path
 
 
 @app.get("/api/stream")
-async def stream(path: str):
-    # If 'path' is relative, it might fail or be insecure. 
-    # Ensure it points to your media storage.
-    print(path)
-    if not os.path.exists(path):
-        raise HTTPException(status_code=404, detail="Video not found")
+def stream(file_path: str):
+    mp4_path = remuxVideo(file_path)
 
-    # FileResponse automatically handles "Range" requests (seeking)
-    # and setting the Content-Length.
     return FileResponse(
-        path, 
-        media_type="video/x-matroska", 
-        filename=os.path.basename(path) # Optional: suggests a filename for downloads
+        mp4_path,
+        media_type="video/mp4",
+        filename=os.path.basename(mp4_path)
     )
+
+# To do: Please delete or hide converted mkv videos beacuse they dup in the list
+# Fix metadata, should give a loading symbol as it seems to just take a long time from a ui standpoint
+# Fix metadata search, should be more efficient
+# convert function to websocket so we can tell the frontend what is happening
+
