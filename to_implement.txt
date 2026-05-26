@@ -1,0 +1,201 @@
+ULIDs are nice because:
+
+unique
+sortable by time
+readable
+distributed-safe
+
+Install:
+
+pip install ulid-py
+
+Python:
+
+import ulid
+
+movie_id = str(ulid.new())
+
+print(movie_id)
+
+Output:
+
+01JZ8K6R4J7A3N5M8K2XQ9YFZW
+
+Pros:
+
+sortable chronologically
+good for databases/indexing
+safer than sequential IDs
+modern
+
+A lot of newer systems prefer ULIDs over UUIDs.
+
+What websites usually do
+
+Depends.
+
+Older sites:
+
+integer IDs i
+
+
+
+
+
+
+
+
+
+# To be implemented: 
+# def updateMainDb():
+
+    # conn = sqlite3.connect('movies.db')
+    # cursor = conn.cursor()
+
+    # cursor.execute("""
+    # CREATE TABLE IF NOT EXISTS TMDBDaily (
+    #     id INTEGER PRIMARY KEY,
+    #     original_title TEXT NOT NULL
+    # )
+    # """)
+    
+    # cursor.execute(""" CREATE VIRTUAL TABLE IF NOT EXISTS TMDBDailyFTS USING fts5(title)""")
+
+    # with open("/home/dylan/Downloads/movies.json", "r", encoding="utf-8") as file:
+    #     for line in file:
+    #         data = json.loads(line)
+    #         movie_id = data["id"]
+    #         original_title = data["original_title"]
+    #         print(original_title)
+    #         cursor.execute("""
+    #         INSERT OR IGNORE INTO TMDBDaily (
+    #             id,
+    #             original_title
+    #         )
+    #         VALUES (?, ?)
+    #         """, (
+    #             movie_id, original_title
+    #         ))
+
+            
+
+    #         original_title = original_title.lower()
+    #         original_title = re.sub(r"[^a-z0-9 ]", "", original_title)
+    #         original_title = re.sub(r"\s+", " ", original_title).strip()
+
+
+    #         cursor.execute("""INSERT OR REPLACE INTO TMDBDailyFTS (
+    #             rowid,
+    #             title
+    #         )
+    #         VALUES (?, ?)
+    #         """, (                    
+    #             movie_id,
+    #             original_title
+    #         ))
+
+    conn.commit()
+
+
+    
+    
+    scores = []
+    rows = cursor.execute("""SELECT rowid, title FROM TMDBDailyFTS WHERE TMDBDailyFTS MATCH ? """, (search,)).fetchall()
+    for row in rows:
+        print ({
+            "id": row[0],
+            "title": row[1],
+        })
+        # print(fuzz.WRatio(search, row[1]))
+        scores.append(fuzz.WRatio(search, row[1]))
+    print(max(scores))
+    for i in range(len(scores)):
+        if max(scores) == scores[i]:
+            print(rows[i])
+
+    # 1483847
+
+
+
+
+
+
+
+
+
+
+# In scanMedia()
+        if type == "tv_shows":
+        root = Path(getConfigSetting("TV_Path"))
+
+        for show in root.iterdir():
+            if show.is_dir():
+                for season in show.iterdir():
+                    if season.is_dir():
+                        for episode in season.iterdir():
+                            if episode.suffix.lower() in ['.json', '.txt', '.pdf']:
+                                continue
+
+                            # Replace this with entry into database.... 
+                            # print({
+                            #     "show": show.name,
+                            #     "season": season.name,
+                            #     "episode": extractEpisode(episode.name),
+                            #     "path": str(episode),
+                            #     "file_name": episode.name,
+                            #     "file_type": episode.suffix,
+                            #     "runtime": "tbi"
+                            # })
+                    else:
+                        if season.suffix.lower() in ['.json', '.txt', '.pdf']:
+                            continue
+                        # print({
+                        #     "show": show.name,
+                        #     "season": 1,
+                        #     "episode": extractEpisode(season.name),
+                        #     "path": str(season),
+                        #     "file_name": season.name,
+                        #     "file_type": season.suffix,
+                        #     "runtime": "tbi"
+                        # })
+
+def insertShow(cursor, show, season, episode, path, file_name, file_type, runtime):
+
+    
+    cursor.execute("""
+    INSERT INTO shows (
+        show, 
+        season,
+        episode,
+        path,
+        file_name,
+        file_type,
+        runtime
+    )
+    VALUES (?, ?, ?, ?, ?, ?)
+    """, (
+        show,
+        season,
+        episode,
+        path,
+        file_name,
+        file_type,
+        runtime,
+        
+    ))
+
+    conn.commit()
+
+# cursor.execute("""CREATE TABLE IF NOT EXISTS shows (
+    # id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+    # show TEXT NOT NULL,
+    # entry TEXT NOT NULL,
+    # season TEXT NOT NULL,
+    # episode TEXT NOT NULL,
+    # path TEXT NOT NULL,
+    # filename TEXT NOT NULL,
+    # file_type TEXT NOT NULL,
+    # runtime INTEGER
+    # )
+    # """)
