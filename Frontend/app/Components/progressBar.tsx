@@ -32,7 +32,6 @@ export default function ProgressBar({ messages }) {
         </div>
       ) : (
         <div className='collapsedView'>
-          📡↔️ Alerts {messages.length} message{messages.length !== 1 ? 's' : ''}
         </div>
       )}
     </div>

@@ -144,9 +144,14 @@ def blocking_ffmpeg(file_path):
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     print("Client connected!")
-    
-    for i in range(45):
-        await websocket.send_json({"progress": f"Test message {i}"})
+    movie_list = getListData("Movies")
+    to_convert = []
+    for movie in movie_list:
+        if movie["file_type"] != "mp4":
+            to_convert.append(movie)
+            print(movie)
+    for item in to_convert:
+        await websocket.send_json({"progress": f"must convert {item["name"]}, type: {item["file_type"]}"})
         await asyncio.sleep(1)
 
     # Add search db which finds anything that is not an mp4, then creates a task for each and starts conversion. Sending websocket alert for each one found, started and completed.
