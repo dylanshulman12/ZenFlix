@@ -1,15 +1,15 @@
 "use client"
 
 import { useState, useEffect, Context, useContext } from "react"
-
 import { Button, ToggleButtonGroup, ToggleButton } from "@mui/material"
-
-//nav
+import { connectWebSocket } from '../websocket';  // Import
 import { useRouter } from "next/navigation"
-
 import { MediaItem, MediaItemPoster } from "../Components/components"
+import ProgressBar from "../Components/progressBar";
 
 export default function Home() {
+
+  
   type CollectionGroup = {
     collection: string
     children: []
@@ -18,7 +18,7 @@ export default function Home() {
   type mediaListGroup = {
     entry: string
     name: string
-    id: number
+    tmdb_id: number
     path: string
     collection: string
     season: string
@@ -37,6 +37,28 @@ export default function Home() {
   const [mediaList, setMediaList] = useState<mediaListGroup[]>([]);
 
   const router = useRouter()
+  
+  const [messages, setMessages] = useState<{data: any}[]>([]);  
+  
+  useEffect(() => {
+      const ws = connectWebSocket();
+    
+      // Store the message handler
+      const handleMessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Got data:", data);
+      
+      // Add to messages list
+      setMessages(
+        prev => [...prev, {data: data}]
+      )
+    };
+    
+    // Listen for messages
+    ws.onmessage = handleMessage;
+    
+  }, []);
+
 
   function triggerOverview(id: number) {
     if (view == "Movies") {
@@ -72,7 +94,7 @@ export default function Home() {
                   <button key={key} onClick={() => triggerOverview(item.id)}>
                     <MediaItem
                       name={item.name}
-                      id={item.id}
+                      id={item.tmdb_id}
                     />
                   </button>
               )
@@ -89,7 +111,7 @@ export default function Home() {
                   <button key={key} onClick={() => triggerOverview(item.id)}>
                     <MediaItemPoster
                       name={item.name}
-                      id={item.id}
+                      id={item.tmdb_id}
                     />
                   </button>
               )
@@ -253,6 +275,7 @@ export default function Home() {
         </ToggleButton>
       </div>
 
+      <ProgressBar messages={messages}/>
       {/* Media Below */}
       <DisplayMovies/>
 

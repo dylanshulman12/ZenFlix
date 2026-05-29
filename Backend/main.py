@@ -72,113 +72,6 @@ def listDirectory(DIR):
     
     return list
 
-# ---------------------- 
-
-# Conversion/remux routes ------------------------
-
-# class ConversionManager:
-#     def __init__(self):
-#         self.active_conversions = {}
-#         self.executor = ThreadPoolExecutor(max_workers=2)
-    
-#     async def convert_files(self, websocket: WebSocket, file_paths: list):
-#         conversion_id = str(uuid.uuid4())
-        
-#         self.active_conversions[conversion_id] = {
-#             "status": "running",
-#             "total": len(file_paths),
-#             "completed": 0,
-#             "current_file": None,
-#             "progress": 0
-#         }
-        
-#         for i, file_path in enumerate(file_paths):
-#             # Tell browser we're starting this file
-#             await websocket.send_json({
-#                 "type": "progress",
-#                 "conversion_id": conversion_id,
-#                 "current": i + 1,
-#                 "total": len(file_paths),
-#                 "file": os.path.basename(file_path),
-#                 "progress": 0
-#             })
-            
-#             # ============================================
-#             # OPTION 1: Simple conversion (no progress updates)
-#             # Just call your existing function
-#             # ============================================
-#             try:
-#                 # Run the conversion in a thread pool so it doesn't block
-#                 loop = asyncio.get_event_loop()
-#                 output_path = await loop.run_in_executor(
-#                     self.executor,
-#                     remuxVideo,  # Your existing function
-#                     file_path
-#                 )
-                
-#                 # Conversion complete for this file
-#                 await websocket.send_json({
-#                     "type": "progress",
-#                     "conversion_id": conversion_id,
-#                     "current": i + 1,
-#                     "total": len(file_paths),
-#                     "file": os.path.basename(file_path),
-#                     "progress": 100  # Jump to 100% when done
-#                 })
-                
-#             except Exception as e:
-#                 await websocket.send_json({
-#                     "type": "error",
-#                     "message": f"Failed to convert {file_path}: {str(e)}"
-#                 })
-#                 continue
-            
-#             # ============================================
-#             # OPTION 2: If you want REAL progress updates (0-100%)
-#             # You need to modify remuxVideo to report progress
-#             # See the "Advanced" section below
-#             # ============================================
-            
-#             # Mark file as complete
-#             self.active_conversions[conversion_id]["completed"] = i + 1
-#             await websocket.send_json({
-#                 "type": "file_complete",
-#                 "conversion_id": conversion_id,
-#                 "completed": i + 1,
-#                 "total": len(file_paths),
-#                 "output_path": output_path
-#             })
-        
-#         # All done!
-#         self.active_conversions[conversion_id]["status"] = "complete"
-#         await websocket.send_json({
-#             "type": "complete",
-#             "conversion_id": conversion_id,
-#             "total": len(file_paths)
-#         })
-
-
-# @app.websocket("/api/convert/batch")
-# async def batch_convert_websocket(websocket: WebSocket):
-#     await websocket.accept()
-    
-#     try:
-#         data = await websocket.receive_json()
-#         file_paths = data.get("file_paths", [])
-        
-#         if not file_paths:
-#             await websocket.send_json({"type": "error", "message": "No files provided"})
-#             return
-        
-#         conversion_manager = ConversionManager()
-#         await conversion_manager.convert_files(websocket, file_paths)
-        
-#     except WebSocketDisconnect:
-#         print("Client disconnected")
-#     except Exception as e:
-#         await websocket.send_json({"type": "error", "message": str(e)})
-
-# --------------------------------
 
 # Generate config
 @app.get("/api/generate")
@@ -221,24 +114,46 @@ def getListData(view: str):
             movie_list = []
             cursor.execute("SELECT * FROM movies")
             for row in cursor.fetchall():
-                print(str(row) + "\n\n")
                 movie_list.append({
-                    "id": row[0],
-                    "entry": row[1],
-                    "name": row[2],
-                    "collection": row[3],
-                    "path": row[4],
-                    "file_type": row[5],
-                    "actor1": row[6],
-                    "actor2": row[7],
-                    "actor3": row[8],
-                    "director": row[9],
-                    "release_date": row[10],
-                    "runtime": row[11],
+                    "movie_id": row[0],
+                    "tmdb_id": row[1],
+                    "entry": row[2],
+                    "name": row[3],
+                    "collection": row[4],
+                    "path": row[5],
+                    "file_type": row[6],
+                    "actor1": row[7],
+                    "actor2": row[8],
+                    "actor3": row[9],
+                    "director": row[10],
+                    "release_date": row[11],
+                    "runtime": row[12],
+                    "overview": row[13]
 
                 })
-            return movie_list
-        
+            return movie_list\
+
+# websocket/conversion....
+
+def blocking_ffmpeg(file_path):
+    import time
+    time.sleep(3)
+    return f"converted_{file_path}"
+
+@app.websocket("/api/socket")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    print("Client connected!")
+    
+    for i in range(45):
+        await websocket.send_json({"progress": f"Test message {i}"})
+        await asyncio.sleep(1)
+
+    # Add search db which finds anything that is not an mp4, then creates a task for each and starts conversion. Sending websocket alert for each one found, started and completed.
+    
+    
+
+
 @app.get("/api/get_poster/{id}")
 async def getPoster(id: int):
     # Change to ffmpeg later to ensure that you are serving the appropriate quality image/format
@@ -264,7 +179,7 @@ def getData(movie_id):
     conn = sqlite3.connect('media.db')
     cursor = conn.cursor()  
     
-    cursor.execute(f"SELECT * FROM movies WHERE id = {movie_id}")
+    cursor.execute(f"SELECT * FROM movies WHERE movie_id = {movie_id}")
     for row in cursor.fetchall():
         return ({
                     "id": row[0],
